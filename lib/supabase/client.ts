@@ -1,13 +1,30 @@
 import { createClient } from '@supabase/supabase-js';
 import type { User, ChatMessage, CareerStateGraph, Roadmap, DailyActions, SimulationResult, Opportunity } from '@/types';
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
-const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '';
+// Lazy initialization - only create client when needed
+let supabaseInstance: ReturnType<typeof createClient> | null = null;
 
-export const supabase = createClient(supabaseUrl, supabaseKey);
+function getSupabase() {
+  if (!supabaseInstance) {
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+
+    if (!supabaseUrl || !supabaseKey) {
+      // Return a mock client that does nothing
+      console.warn('Supabase credentials not found. Database features disabled.');
+      return null;
+    }
+
+    supabaseInstance = createClient(supabaseUrl, supabaseKey);
+  }
+  return supabaseInstance;
+}
 
 // Auth functions
 export async function signUp(email: string, password: string, name: string) {
+  const supabase = getSupabase();
+  if (!supabase) return { data: null, error: new Error('Supabase not configured') };
+
   const { data, error } = await supabase.auth.signUp({
     email,
     password,
@@ -19,6 +36,9 @@ export async function signUp(email: string, password: string, name: string) {
 }
 
 export async function signIn(email: string, password: string) {
+  const supabase = getSupabase();
+  if (!supabase) return { data: null, error: new Error('Supabase not configured') };
+
   const { data, error } = await supabase.auth.signInWithPassword({
     email,
     password,
@@ -27,17 +47,26 @@ export async function signIn(email: string, password: string) {
 }
 
 export async function signOut() {
+  const supabase = getSupabase();
+  if (!supabase) return { error: new Error('Supabase not configured') };
+
   const { error } = await supabase.auth.signOut();
   return { error };
 }
 
 export async function getCurrentUser() {
+  const supabase = getSupabase();
+  if (!supabase) return null;
+
   const { data: { user } } = await supabase.auth.getUser();
   return user;
 }
 
 // Chat functions
 export async function saveChatMessage(message: Omit<ChatMessage, 'id'>) {
+  const supabase = getSupabase();
+  if (!supabase) return { data: null, error: new Error('Supabase not configured') };
+
   const { data, error } = await supabase
     .from('chat_memory')
     .insert([message])
@@ -47,6 +76,9 @@ export async function saveChatMessage(message: Omit<ChatMessage, 'id'>) {
 }
 
 export async function getChatHistory(userId: string, sessionId?: string) {
+  const supabase = getSupabase();
+  if (!supabase) return { data: null, error: new Error('Supabase not configured') };
+
   let query = supabase
     .from('chat_memory')
     .select('*')
@@ -63,6 +95,18 @@ export async function getChatHistory(userId: string, sessionId?: string) {
 
 // Career State functions
 export async function getCareerState(userId: string): Promise<CareerStateGraph | null> {
+  const supabase = getSupabase();
+  if (!supabase) {
+    // Return default state without database
+    return {
+      user_id: userId,
+      nodes: [],
+      edges: [],
+      confidence_score: 0,
+      last_updated: new Date().toISOString(),
+    };
+  }
+
   const { data, error } = await supabase
     .from('career_state_graph')
     .select('*')
@@ -70,7 +114,6 @@ export async function getCareerState(userId: string): Promise<CareerStateGraph |
     .single();
 
   if (error || !data) {
-    // Return default state
     return {
       user_id: userId,
       nodes: [],
@@ -84,6 +127,9 @@ export async function getCareerState(userId: string): Promise<CareerStateGraph |
 }
 
 export async function saveCareerState(state: CareerStateGraph) {
+  const supabase = getSupabase();
+  if (!supabase) return { data: null, error: new Error('Supabase not configured') };
+
   const { data, error } = await supabase
     .from('career_state_graph')
     .upsert([{
@@ -97,6 +143,9 @@ export async function saveCareerState(state: CareerStateGraph) {
 
 // Roadmap functions
 export async function getActiveRoadmap(userId: string): Promise<Roadmap | null> {
+  const supabase = getSupabase();
+  if (!supabase) return null;
+
   const { data, error } = await supabase
     .from('roadmaps')
     .select('*')
@@ -108,6 +157,9 @@ export async function getActiveRoadmap(userId: string): Promise<Roadmap | null> 
 }
 
 export async function saveRoadmap(roadmap: Omit<Roadmap, 'id' | 'created_at' | 'updated_at'>) {
+  const supabase = getSupabase();
+  if (!supabase) return { data: null, error: new Error('Supabase not configured') };
+
   const { data, error } = await supabase
     .from('roadmaps')
     .upsert([{
@@ -121,6 +173,9 @@ export async function saveRoadmap(roadmap: Omit<Roadmap, 'id' | 'created_at' | '
 
 // Daily Actions functions
 export async function getTodayActions(userId: string, date: string): Promise<DailyActions | null> {
+  const supabase = getSupabase();
+  if (!supabase) return null;
+
   const { data, error } = await supabase
     .from('daily_actions')
     .select('*')
@@ -132,6 +187,9 @@ export async function getTodayActions(userId: string, date: string): Promise<Dai
 }
 
 export async function saveDailyActions(actions: Omit<DailyActions, 'id' | 'created_at'>) {
+  const supabase = getSupabase();
+  if (!supabase) return { data: null, error: new Error('Supabase not configured') };
+
   const { data, error } = await supabase
     .from('daily_actions')
     .upsert([actions])
@@ -142,6 +200,9 @@ export async function saveDailyActions(actions: Omit<DailyActions, 'id' | 'creat
 
 // Opportunities functions
 export async function getOpportunities(userId: string) {
+  const supabase = getSupabase();
+  if (!supabase) return { data: null, error: new Error('Supabase not configured') };
+
   const { data, error } = await supabase
     .from('opportunities')
     .select('*')
@@ -152,6 +213,9 @@ export async function getOpportunities(userId: string) {
 
 // Simulation functions
 export async function saveSimulation(simulation: Omit<SimulationResult, 'id' | 'created_at'>) {
+  const supabase = getSupabase();
+  if (!supabase) return { data: null, error: new Error('Supabase not configured') };
+
   const { data, error } = await supabase
     .from('simulations')
     .insert([simulation])
