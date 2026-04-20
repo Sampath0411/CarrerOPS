@@ -1,32 +1,53 @@
 'use client';
 
 import { motion } from 'framer-motion';
-import { MessageSquare, Target, BookOpen, Clock } from 'lucide-react';
+import { MessageSquare, Target, BookOpen, Clock, CheckCircle2, Route } from 'lucide-react';
+import { useCareer } from '@/lib/context/CareerContext';
 
 export function StatsGrid() {
+  const { state } = useCareer();
+
+  // Calculate stats from career state
+  const totalNodes = state.nodes.length;
+  const completedNodes = state.nodes.filter(n => n.status === 'completed').length;
+  const inProgressNodes = state.nodes.filter(n => n.status === 'in-progress').length;
+  const profileCompletion = state.profile ? calculateProfileCompletion(state.profile) : 0;
+
+  function calculateProfileCompletion(profile: typeof state.profile) {
+    if (!profile) return 0;
+    let score = 0;
+    if (profile.name) score += 20;
+    if (profile.email) score += 20;
+    if (profile.year) score += 20;
+    if (profile.cgpa) score += 20;
+    if (profile.preferredPath) score += 20;
+    return score;
+  }
+
   const stats = [
     {
-      icon: MessageSquare,
-      label: 'Conversations',
-      value: '12',
+      icon: Route,
+      label: 'Roadmap Nodes',
+      value: `${completedNodes}/${totalNodes}`,
+      subtext: `${inProgressNodes} in progress`,
       color: 'bg-blue-500',
     },
     {
       icon: Target,
       label: 'Profile Complete',
-      value: '65%',
+      value: `${profileCompletion}%`,
       color: 'bg-green-500',
     },
     {
-      icon: BookOpen,
-      label: 'Courses Found',
-      value: '8',
+      icon: CheckCircle2,
+      label: 'Completed',
+      value: `${completedNodes}`,
       color: 'bg-purple-500',
     },
     {
       icon: Clock,
-      label: 'Time Spent',
-      value: '2.5h',
+      label: 'In Progress',
+      value: `${inProgressNodes}`,
       color: 'bg-orange-500',
     },
   ];
@@ -46,6 +67,9 @@ export function StatsGrid() {
           </div>
           <p className="text-2xl font-bold text-white mb-1">{stat.value}</p>
           <p className="text-sm text-slate-400">{stat.label}</p>
+          {stat.subtext && (
+            <p className="text-xs text-slate-500 mt-1">{stat.subtext}</p>
+          )}
         </motion.div>
       ))}
     </div>

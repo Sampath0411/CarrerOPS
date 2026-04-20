@@ -1,0 +1,207 @@
+{
+  "exam_resources": {
+    "GATE_2026": {
+      "Mechanical_Engineering": {
+        "url": "https://www.youtube.com/playlist?list=PLjtQ3BMex7hsnl-nAsz-r491DdlVCxKlO",
+        "embedId": "PLjtQ3BMex7hsnl-nAsz-r491DdlVCxKlO",
+        "title": "GATE Mechanical Engineering Complete Playlist",
+        "description": "Comprehensive coverage of all ME topics for GATE preparation"
+      },
+      "Electrical_Engineering": {
+        "url": "https://www.youtube.com/playlist?list=PLgF7lRh8Xb_UI2RRz72UQNMYa28nCxFtf",
+        "embedId": "PLgF7lRh8Xb_UI2RRz72UQNMYa28nCxFtf",
+        "title": "GATE Electrical Engineering Complete Playlist",
+        "description": "Full EE syllabus coverage with solved problems"
+      },
+      "Civil_Engineering": {
+        "url": "https://www.youtube.com/playlist?list=PLjtQ3BMex7huPh0W_bsbeXw6wcZ6BcW7c",
+        "embedId": "PLjtQ3BMex7huPh0W_bsbeXw6wcZ6BcW7c",
+        "title": "GATE Civil Engineering Complete Playlist",
+        "description": "Structural, geotechnical, and all CE subjects"
+      },
+      "Computer_Science": {
+        "url": "https://www.youtube.com/playlist?list=PLOG_8OlGMp71eMrgpPWXLzVqMd0OaCqyq",
+        "embedId": "PLOG_8OlGMp71eMrgpPWXLzVqMd0OaCqyq",
+        "title": "GATE CSE Complete Preparation",
+        "description": "Algorithms, DBMS, OS, Networks, and all CS topics"
+      },
+      "Engineering_Mathematics": {
+        "url": "https://www.youtube.com/playlist?list=PLs5_Rtf2P2r7S1HCmxmyaUJR5vypmeYSF",
+        "embedId": "PLs5_Rtf2P2r7S1HCmxmyaUJR5vypmeYSF",
+        "title": "Engineering Mathematics for GATE",
+        "description": "Linear algebra, calculus, probability for all branches"
+      }
+    },
+    "GRE": [
+      {
+        "title": "Complete GRE Quant Course",
+        "url": "https://www.youtube.com/playlist?list=PL0rijwfA1veSQZE5bbAZ3lqajipQcy_g1",
+        "embedId": "PL0rijwfA1veSQZE5bbAZ3lqajipQcy_g1",
+        "description": "Master GRE Quantitative section from basics to advanced",
+        "duration": "40+ hours",
+        "level": "All levels"
+      },
+      {
+        "title": "GRE Vocabulary Mastery",
+        "url": "https://www.youtube.com/playlist?list=PLpFNTvMhF5pXjAGme1pXZwXkQTMQ7mY3C",
+        "embedId": "PLpFNTvMhF5pXjAGme1pXZwXkQTMQ7mY3C",
+        "description": "High-frequency GRE words with mnemonics",
+        "duration": "20 hours",
+        "level": "Beginner to Advanced"
+      },
+      {
+        "title": "GRE Comprehensive Study Material",
+        "url": "https://www.youtube.com/playlist?list=PLTKvA_VCNO4tBmDBdMUcs9t4D_CY01U5o",
+        "embedId": "PLTKvA_VCNO4tBmDBdMUcs9t4D_CY01U5o",
+        "description": "Full GRE preparation including AWA and Verbal",
+        "duration": "60+ hours",
+        "level": "All levels"
+      },
+      {
+        "title": "Manhattan Prep Free Hour",
+        "url": "https://www.youtube.com/playlist?list=PLYZACiD6j3VsFlDR68gbF9CK9gZedcPbY",
+        "embedId": "PLYZACiD6j3VsFlDR68gbF9CK9gZedcPbY",
+        "description": "Expert strategies from Manhattan Prep instructors",
+        "duration": "10+ hours",
+        "level": "Intermediate"
+      }
+    ],
+    "CAT": [
+      {
+        "title": "CAT 2026 Complete Syllabus",
+        "url": "https://www.youtube.com/playlist?list=PL4YW4OWyzRDSFddQ09Y96ASW3-2VLv1S7",
+        "embedId": "PL4YW4OWyzRDSFddQ09Y96ASW3-2VLv1S7",
+        "description": "Complete VARC, DILR, and Quant coverage",
+        "duration": "100+ hours",
+        "level": "All levels"
+      },
+      {
+        "title": "VARC Strategy & Practice",
+        "url": "https://www.youtube.com/playlist?list=PLSjkMEhzZ_icihE5IwlFH_ETUuzoLs1lh",
+        "embedId": "PLSjkMEhzZ_icihE5IwlFH_ETUuzoLs1lh",
+        "description": "Reading comprehension and verbal ability mastery",
+        "duration": "30 hours",
+        "level": "All levels"
+      },
+      {
+        "title": "Quantitative Aptitude (Arithmetic)",
+        "url": "https://www.youtube.com/playlist?list=PLlxE9WKuvDj_7VQiib1svlWkIhOR8W5Dw",
+        "embedId": "PLlxE9WKuvDj_7VQiib1svlWkIhOR8W5Dw",
+        "description": "Numbers, percentages, profit-loss, and more",
+        "duration": "25 hours",
+        "level": "Beginner to Intermediate"
+      },
+      {
+        "title": "Full Video Lectures Series",
+        "url": "https://www.youtube.com/playlist?list=PLSjkMEhzZ_ieDF9QEwQrY9isbZRoH6JSO",
+        "embedId": "PLSjkMEhzZ_ieDF9QEwQrY9isbZRoH6JSO",
+        "description": "Comprehensive CAT prep with practice questions",
+        "duration": "80+ hours",
+        "level": "All levels"
+      }
+    ],
+    "IELTS": [
+      {
+        "title": "IELTS Band 8+ Full Course",
+        "url": "https://www.youtube.com/playlist?list=PLqIV1EQkj2tgT-ySmQcVVe7RCfu_nscdc",
+        "embedId": "PLqIV1EQkj2tgT-ySmQcVVe7RCfu_nscdc",
+        "description": "Achieve band 8+ in all four modules",
+        "duration": "50+ hours",
+        "level": "Intermediate to Advanced"
+      },
+      {
+        "title": "30-Day IELTS Masterclass",
+        "url": "https://www.youtube.com/playlist?list=PL5Pbznk6dmHDBkjw40zLuc4VdILMIVWpG",
+        "embedId": "PL5Pbznk6dmHDBkjw40zLuc4VdILMIVWpG",
+        "description": "Intensive one-month preparation plan",
+        "duration": "40 hours",
+        "level": "All levels"
+      },
+      {
+        "title": "4 Weeks to Band 8",
+        "url": "https://www.youtube.com/playlist?list=PLC4YmsecY4niPdlQzMbIMwh_FmzgBKpa3",
+        "embedId": "PLC4YmsecY4niPdlQzMbIMwh_FmzgBKpa3",
+        "description": "Structured 4-week study plan for high scores",
+        "duration": "35 hours",
+        "level": "Intermediate"
+      },
+      {
+        "title": "Academic Reading Specialization",
+        "url": "https://www.youtube.com/playlist?list=PLzvGATksl5N4ufSHYq-0wxASVqUYzw0Jg",
+        "embedId": "PLzvGATksl5N4ufSHYq-0wxASVqUYzw0Jg",
+        "description": "Master the academic reading module",
+        "duration": "20 hours",
+        "level": "All levels"
+      }
+    ]
+  },
+  "career_paths": {
+    "higher_education": {
+      "MS_USA": {
+        "flowchart": [
+          { "step": 1, "title": "Research Programs", "description": "Identify universities and specializations", "timeline": "Month 1-2" },
+          { "step": 2, "title": "GRE Preparation", "description": "Take GRE exam, aim for 320+", "timeline": "Month 2-5" },
+          { "step": 3, "title": "TOEFL/IELTS", "description": "English proficiency test", "timeline": "Month 4-6" },
+          { "step": 4, "title": "Application Documents", "description": "SOP, LORs, Resume, Transcripts", "timeline": "Month 5-7" },
+          { "step": 5, "title": "Submit Applications", "description": "Apply to 8-10 universities", "timeline": "Month 8-10" },
+          { "step": 6, "title": "Interviews & Decisions", "description": "Attend interviews, receive admits", "timeline": "Month 11-14" },
+          { "step": 7, "title": "Visa & Departure", "description": "F1 visa, accommodation, travel", "timeline": "Month 15-18" }
+        ],
+        "exams_required": ["GRE", "TOEFL/IELTS"],
+        "avg_cost": "$40,000-70,000/year",
+        "duration": "2 years"
+      },
+      "MBA": {
+        "flowchart": [
+          { "step": 1, "title": "Profile Building", "description": "Work experience, extracurriculars", "timeline": "Ongoing" },
+          { "step": 2, "title": "CAT/GMAT", "description": "Take entrance exam", "timeline": "Year 1" },
+          { "step": 3, "title": "Shortlist B-Schools", "description": "Research IIMs, ISB, XLRI, etc.", "timeline": "Year 1" },
+          { "step": 4, "title": "WAT & Interview", "description": "Written Ability Test, GD, PI", "timeline": "Year 1-2" },
+          { "step": 5, "title": "Admission", "description": "Accept offer, fee payment", "timeline": "Year 2" }
+        ],
+        "exams_required": ["CAT", "GMAT"],
+        "avg_cost": "₹10-25 lakhs",
+        "duration": "2 years"
+      },
+      "GATE": {
+        "flowchart": [
+          { "step": 1, "title": "Foundation", "description": "Complete syllabus understanding", "timeline": "Month 1-3" },
+          { "step": 2, "title": "Deep Learning", "description": "Core subjects focus", "timeline": "Month 4-7" },
+          { "step": 3, "title": "Practice", "description": "Previous year papers, mock tests", "timeline": "Month 8-10" },
+          { "step": 4, "title": "Revision", "description": "Formula revision, weak areas", "timeline": "Month 11-12" },
+          { "step": 5, "title": "Exam", "description": "GATE exam in February", "timeline": "Month 12" },
+          { "step": 6, "title": "Counseling", "description": "CCMT, IIT admissions", "timeline": "Month 13-15" }
+        ],
+        "exams_required": ["GATE"],
+        "avg_cost": "Free (PSU jobs) / ₹2-5 lakhs (M.Tech)",
+        "duration": "2 years (M.Tech)"
+      }
+    },
+    "courses": {
+      "Web_Development": {
+        "flowchart": [
+          { "step": 1, "title": "HTML/CSS", "description": "Build static websites", "timeline": "Week 1-2" },
+          { "step": 2, "title": "JavaScript", "description": "Dynamic functionality", "timeline": "Week 3-6" },
+          { "step": 3, "title": "React", "description": "Component-based UI", "timeline": "Week 7-10" },
+          { "step": 4, "title": "Node.js", "description": "Backend development", "timeline": "Week 11-14" },
+          { "step": 5, "title": "Database", "description": "MongoDB/SQL", "timeline": "Week 15-16" },
+          { "step": 6, "title": "Projects", "description": "Portfolio building", "timeline": "Week 17-20" }
+        ],
+        "skills": ["HTML", "CSS", "JavaScript", "React", "Node.js"],
+        "duration": "5 months"
+      },
+      "Data_Science": {
+        "flowchart": [
+          { "step": 1, "title": "Python Basics", "description": "Programming fundamentals", "timeline": "Week 1-3" },
+          { "step": 2, "title": "Data Analysis", "description": "Pandas, NumPy", "timeline": "Week 4-6" },
+          { "step": 3, "title": "Visualization", "description": "Matplotlib, Seaborn", "timeline": "Week 7-8" },
+          { "step": 4, "title": "Machine Learning", "description": "Scikit-learn", "timeline": "Week 9-14" },
+          { "step": 5, "title": "Deep Learning", "description": "TensorFlow/PyTorch", "timeline": "Week 15-18" },
+          { "step": 6, "title": "Projects", "description": "Kaggle, portfolio", "timeline": "Week 19-24" }
+        ],
+        "skills": ["Python", "Pandas", "Machine Learning", "Deep Learning"],
+        "duration": "6 months"
+      }
+    }
+  }
+}

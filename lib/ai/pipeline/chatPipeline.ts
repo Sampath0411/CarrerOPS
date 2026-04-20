@@ -1,94 +1,240 @@
 import { generateChatCompletion, generateTextCompletion } from '../providers/groq';
 import { fetchCareerData, formatSearchResults } from '../webSearch';
+import examResources from '@/lib/data/examResources.json';
 import type { ChatMessage, IntentData, CareerStateGraph, StateChanges, DailyActions, ChatResponse } from '@/types';
 
-// Intent Extraction Prompt
-const INTENT_PROMPT = `You are an AI Career Assistant. Extract the user's intent and entities from their message.
+// Types for exam resources
+interface ExamResource {
+  title: string;
+  url: string;
+  embedId?: string;
+  description?: string;
+  duration?: string;
+  level?: string;
+}
+
+interface CareerPath {
+  flowchart: Array<{
+    step: number;
+    title: string;
+    description: string;
+    timeline: string;
+  }>;
+  exams_required?: string[];
+  avg_cost?: string;
+  duration: string;
+  skills?: string[];
+}
+
+// Get user's branch-specific GATE resources
+function getGATEResources(branch: string): ExamResource | null {
+  const branchMapping: Record<string, string> = {
+    'CSE': 'Computer_Science',
+    'IT': 'Computer_Science',
+    'MECH': 'Mechanical_Engineering',
+    'EEE': 'Electrical_Engineering',
+    'ECE': 'Electrical_Engineering',
+    'CIVIL': 'Civil_Engineering',
+  };
+
+  const key = branchMapping[branch] || 'Engineering_Mathematics';
+  const resource = examResources.exam_resources.GATE_2026[key as keyof typeof examResources.exam_resources.GATE_2026];
+
+  if (resource && typeof resource === 'object' && 'url' in resource) {
+    return resource as ExamResource;
+  }
+  return null;
+}
+
+// Get exam resources by name
+function getExamResources(examName: string): ExamResource[] {
+  const key = examName.toUpperCase() as keyof typeof examResources.exam_resources;
+  const resources = examResources.exam_resources[key];
+
+  if (Array.isArray(resources)) {
+    return resources as ExamResource[];
+  }
+  return [];
+}
+
+// Get career path flowchart
+function getCareerPathFlowchart(path: string): CareerPath | null {
+  const paths = examResources.career_paths;
+
+  if (path.includes('MS') || path.includes('USA')) {
+    return paths.higher_education.MS_USA as CareerPath;
+  }
+  if (path.includes('MBA')) {
+    return paths.higher_education.MBA as CareerPath;
+  }
+  if (path.includes('GATE')) {
+    return paths.higher_education.GATE as CareerPath;
+  }
+  if (path.includes('Web') || path.includes('Development')) {
+    return paths.courses.Web_Development as CareerPath;
+  }
+  if (path.includes('Data') || path.includes('Science')) {
+    return paths.courses.Data_Science as CareerPath;
+  }
+
+  return null;
+}
+
+// Intent Extraction Prompt - Enhanced for better organization
+const INTENT_PROMPT = `You are CareerOps, an AI Career Operating System. Analyze the user's message and extract their intent.
 
 Output JSON format:
 {
-  "intent_type": "goal_declaration" | "skill_update" | "interest_change" | "constraint_add" | "roadmap_request" | "simulation_request" | "action_request" | "clarification" | "general_chat",
+  "intent_type": "goal_declaration" | "skill_update" | "exam_inquiry" | "roadmap_request" | "resource_request" | "general_chat",
   "entities": {
-    "goals": ["GATE", "MS", "PSU", "CAT", "GRE"],
-    "skills": ["Python", "Signals", "Aptitude"],
-    "countries": ["USA", "Germany", "India"],
-    "exams": ["GRE", "TOEFL", "IELTS"],
-    "timeframes": ["2025", "next year"],
-    "numbers": ["8.5 CGPA", "2 years"]
+    "goals": ["MS", "MBA", "GATE", "Web Development", "Data Science"],
+    "exams": ["GRE", "GATE", "CAT", "IELTS", "TOEFL"],
+    "skills": ["Python", "JavaScript", "Machine Learning"],
+    "branches": ["CSE", "ECE", "MECH"],
+    "timeframes": ["2026", "next year"]
   },
   "confidence": 0.85,
-  "state_affected": ["goals", "skills"],
-  "summary": "User wants to pursue MS in USA by 2025"
+  "requested_exam": "GRE",
+  "requested_path": "MS_USA",
+  "summary": "User wants GRE resources for MS in USA"
 }
 
 Analyze carefully and return ONLY valid JSON.`;
 
-// State Update Prompt
-const STATE_PROMPT = `You are updating a Career State Graph. Based on the extracted intent, determine what changes to make.
+// Generate organized ChatGPT-style response
+function generateOrganizedResponse(
+  intent: IntentData,
+  userProfile: { branch?: string; year?: number; cgpa?: number; learningPosition?: string },
+  mode: 'courses' | 'higher-ed'
+): { message: string; flowchart?: CareerPath; resources?: ExamResource[] } {
+  const { intent_type, entities } = intent;
 
-Current graph structure:
-- nodes: goals, skills, interests, constraints
-- edges: prerequisite, influence relationships
+  let message = '';
+  let flowchart: CareerPath | null = null;
+  let resources: ExamResource[] = [];
 
-Output JSON format:
-{
-  "changes": {
-    "added": ["goal_ms_usa"],
-    "updated": [],
-    "removed": [],
-    "edges_added": ["skill_python -> goal_ms_usa"]
-  },
-  "confidence_delta": 5,
-  "new_confidence_score": 72
+  // Personalized greeting based on profile
+  const branchGreeting = userProfile.branch
+    ? `As a ${userProfile.year}${getOrdinal(userProfile.year)} year ${userProfile.branch} student`
+    : '';
+
+  // Handle exam resource requests
+  if (intent_type === 'exam_inquiry' || entities?.exams?.length) {
+    const exam = entities?.exams?.[0];
+
+    if (exam) {
+      message += `## ${exam} Preparation Resources\n\n`;
+
+      if (exam === 'GATE' && userProfile.branch) {
+        message += `${branchGreeting}, here are your branch-specific GATE resources:\n\n`;
+        const gateResource = getGATEResources(userProfile.branch);
+        if (gateResource) {
+          resources.push(gateResource);
+          message += `**${gateResource.title}**\n${gateResource.description}\n`;
+        }
+      } else {
+        const examResources = getExamResources(exam);
+        resources.push(...examResources.slice(0, 3));
+        message += `Here are the top ${exam} preparation playlists:\n\n`;
+        examResources.slice(0, 3).forEach((res, i) => {
+          message += `${i + 1}. **${res.title}** - ${res.url}\n`;
+          if (res.description) message += `   ${res.description}\n`;
+          if (res.duration) message += `   ⏱️ ${res.duration}\n`;
+        });
+      }
+    }
+  }
+
+  // Handle career path/roadmap requests
+  if (intent_type === 'roadmap_request' || entities?.goals?.length) {
+    const path = entities?.goals?.[0];
+
+    if (path) {
+      flowchart = getCareerPathFlowchart(path);
+
+      if (flowchart) {
+        message += `\n## ${path} Career Roadmap\n\n`;
+        message += `**Duration:** ${flowchart.duration}\n`;
+        if (flowchart.avg_cost) message += `**Investment:** ${flowchart.avg_cost}\n`;
+        if (flowchart.exams_required && flowchart.exams_required.length > 0) {
+          message += `**Required Exams:** ${flowchart.exams_required.join(', ')}\n`;
+        }
+        if (flowchart.skills && flowchart.skills.length > 0) {
+          message += `**Skills:** ${flowchart.skills.join(', ')}\n`;
+        }
+        message += `\nHere's your step-by-step journey:\n\n`;
+
+        flowchart.flowchart.forEach((step) => {
+          message += `### Step ${step.step}: ${step.title}\n`;
+          message += `${step.description}\n`;
+          message += `⏱️ **Timeline:** ${step.timeline}\n\n`;
+        });
+      }
+    }
+  }
+
+  // General guidance if no specific resources found
+  if (!message) {
+    message = `I'd be happy to help you with your career planning!\n\n`;
+
+    if (mode === 'higher-ed') {
+      message += `## Popular Paths for ${branchGreeting || 'Engineering Students'}:\n\n`;
+      message += `### 1. **MS in USA/Canada**\n`;
+      message += `   - Requires: GRE + TOEFL/IELTS\n`;
+      message += `   - Duration: 2 years\n`;
+      message += `   - Best for: Research-oriented careers\n\n`;
+
+      message += `### 2. **MBA**\n`;
+      message += `   - Requires: CAT/GMAT\n`;
+      message += `   - Duration: 2 years\n`;
+      message += `   - Best for: Management roles\n\n`;
+
+      message += `### 3. **M.Tech via GATE**\n`;
+      message += `   - Requires: GATE exam\n`;
+      message += `   - Duration: 2 years\n`;
+      message += `   - Best for: Technical specialization\n\n`;
+
+      message += `*Which path interests you? I can provide detailed resources and a personalized roadmap.*`;
+    } else {
+      message += `## In-Demand Skills:\n\n`;
+      message += `### 1. **Web Development**\n`;
+      message += `   - Duration: 4-6 months\n`;
+      message += `   - Skills: HTML, CSS, JavaScript, React\n\n`;
+
+      message += `### 2. **Data Science**\n`;
+      message += `   - Duration: 6 months\n`;
+      message += `   - Skills: Python, ML, Statistics\n\n`;
+
+      message += `### 3. **Cloud Computing**\n`;
+      message += `   - Duration: 2-3 months\n`;
+      message += `   - Skills: AWS/Azure, DevOps\n\n`;
+    }
+  }
+
+  return { message, flowchart: flowchart || undefined, resources: resources.length > 0 ? resources : undefined };
 }
 
-Return ONLY valid JSON.`;
-
-// Action Generation Prompt
-const ACTION_PROMPT = `Generate daily tasks based on the user's career state and roadmap.
-
-Output JSON format:
-{
-  "must_do": [
-    {
-      "id": "task_001",
-      "title": "Complete GRE Quant Section 3",
-      "type": "study",
-      "estimated_minutes": 60,
-      "impact": "high"
-    }
-  ],
-  "optional": [
-    {
-      "id": "task_002",
-      "title": "Connect with alumni",
-      "type": "networking",
-      "estimated_minutes": 20,
-      "impact": "low"
-    }
-  ],
-  "focus_area": "GRE Quant - Algebra",
-  "motivation_message": "You're 40% through your roadmap!",
-  "estimated_total_time": 90
+// Helper for ordinal numbers
+function getOrdinal(n?: number): string {
+  if (!n) return 'th';
+  if (n === 1) return 'st';
+  if (n === 2) return 'nd';
+  if (n === 3) return 'rd';
+  return 'th';
 }
-
-Return ONLY valid JSON.`;
 
 export async function processChatMessage(
   userId: string,
   message: string,
   history: ChatMessage[],
-  mode: 'courses' | 'higher-ed' = 'courses'
-): Promise<ChatResponse> {
+  mode: 'courses' | 'higher-ed' = 'courses',
+  userProfile?: { branch?: string; year?: number; cgpa?: number; learningPosition?: string }
+): Promise<ChatResponse & { flowchart?: CareerPath; resources?: ExamResource[] }> {
   try {
-    // Step 1: Fetch web data based on mode and query
-    const webResults = await fetchCareerData(mode, message);
-    const webContext = formatSearchResults(webResults);
-
-    // Step 2: Extract Intent with mode context
+    // Step 1: Extract Intent
     const intentResponse = await generateChatCompletion([
       { role: 'system', content: INTENT_PROMPT },
-      { role: 'user', content: `Mode: ${mode}\nUser message: "${message}"\n\nExtract intent and entities.` },
+      { role: 'user', content: `User message: "${message}"\nMode: ${mode}\n\nExtract intent and entities.` },
     ]);
 
     let intent: IntentData;
@@ -104,82 +250,41 @@ export async function processChatMessage(
       };
     }
 
-    // Step 3: Update State Graph
-    const stateResponse = await generateChatCompletion([
-      { role: 'system', content: STATE_PROMPT },
-      {
-        role: 'user',
-        content: `Mode: ${mode}\nIntent: ${JSON.stringify(intent)}\nUser message: "${message}"\n\nDetermine state changes.`,
-      },
-    ]);
+    // Step 2: Generate organized response with resources
+    const organizedResponse = generateOrganizedResponse(intent, userProfile || {}, mode);
 
-    let stateChanges: StateChanges;
-    try {
-      const parsed = JSON.parse(stateResponse);
-      stateChanges = parsed.changes || { added: [], updated: [], removed: [], edges_added: [] };
-    } catch {
-      stateChanges = { added: [], updated: [], removed: [], edges_added: [] };
+    // Step 3: Enhance with web search if needed
+    let webContext = '';
+    if (intent.intent_type === 'resource_request' || intent.intent_type === 'exam_inquiry') {
+      const webResults = await fetchCareerData(mode, message);
+      webContext = formatSearchResults(webResults);
     }
 
-    // Step 4: Generate AI Response with web data
-    const responsePrompt = `You are CareerOps, an AI Career Operating System.
+    // Step 4: Generate follow-up text with AI
+    const followUpPrompt = `Based on this career guidance context, provide a brief encouraging follow-up (2-3 sentences):
 
-Mode: ${mode === 'courses' ? 'Course Discovery' : 'Higher Education Guidance'}
-The user said: "${message}"
-
+User Profile: ${JSON.stringify(userProfile)}
 Intent: ${intent.summary}
+Resources provided: ${organizedResponse.resources?.length || 0}
 
-${webContext ? `Here is current online information:\n${webContext}\n\n` : ''}
-Provide a helpful, conversational response that:
-1. Acknowledges their intent
-2. ${webContext ? 'References specific resources or links found online' : 'Asks clarifying questions'}
-3. Suggests next steps
+Keep it friendly and actionable. Mention next steps.`;
 
-Be encouraging and specific. Include relevant links if available. Keep it under 200 words.`;
+    const followUp = await generateTextCompletion(followUpPrompt);
 
-    const aiResponse = await generateTextCompletion(responsePrompt);
-
-    // Step 4: Generate Actions (if relevant)
-    let actions: DailyActions | undefined;
-    if (
-      intent.intent_type === 'action_request' ||
-      intent.intent_type === 'roadmap_request' ||
-      intent.state_affected.length > 0
-    ) {
-      const actionResponse = await generateChatCompletion([
-        { role: 'system', content: ACTION_PROMPT },
-        { role: 'user', content: `User intent: ${intent.summary}\n\nGenerate daily tasks.` },
-      ]);
-
-      try {
-        const actionData = JSON.parse(actionResponse);
-        actions = {
-          id: `actions_${Date.now()}`,
-          user_id: userId,
-          date: new Date().toISOString().split('T')[0],
-          must_do: actionData.must_do.map((t: any) => ({ ...t, completed: false })),
-          optional: actionData.optional.map((t: any) => ({ ...t, completed: false })),
-          focus_area: actionData.focus_area,
-          energy_level: 3,
-          motivation_message: actionData.motivation_message,
-          estimated_total_time: actionData.estimated_total_time,
-          completed_task_ids: [],
-          created_at: new Date().toISOString(),
-        };
-      } catch {
-        // Actions generation failed, continue without
-      }
-    }
+    // Combine responses
+    const fullMessage = organizedResponse.message + '\n\n' + followUp;
 
     return {
-      message: aiResponse,
+      message: fullMessage,
       intent,
-      actions,
+      flowchart: organizedResponse.flowchart,
+      resources: organizedResponse.resources,
     };
+
   } catch (error) {
     console.error('Chat Pipeline Error:', error);
     return {
-      message: 'I apologize, but I encountered an issue processing your message. Please try again.',
+      message: 'I apologize, but I encountered an issue. Please try again.',
     };
   }
 }

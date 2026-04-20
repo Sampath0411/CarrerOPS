@@ -1,7 +1,7 @@
 'use client';
 
 import { motion, AnimatePresence } from 'framer-motion';
-import { Target, Sparkles, Brain, MapPin } from 'lucide-react';
+import { Target, Sparkles, Brain, MapPin, FileText, BookOpen } from 'lucide-react';
 import type { IntentData } from '@/types';
 
 interface IntentIndicatorProps {
@@ -18,6 +18,8 @@ const intentIcons = {
   action_request: Target,
   clarification: Brain,
   general_chat: Sparkles,
+  exam_inquiry: FileText,
+  resource_request: BookOpen,
 };
 
 const intentLabels = {
@@ -30,6 +32,8 @@ const intentLabels = {
   action_request: 'Actions Generated',
   clarification: 'Clarifying',
   general_chat: 'Chatting',
+  exam_inquiry: 'Exam Resources',
+  resource_request: 'Finding Resources',
 };
 
 export function IntentIndicator({ intent }: IntentIndicatorProps) {

@@ -22,7 +22,7 @@ export interface ChatMessage {
 export interface IntentData {
   intent_type: 'goal_declaration' | 'skill_update' | 'interest_change' |
               'constraint_add' | 'roadmap_request' | 'simulation_request' |
-              'action_request' | 'clarification' | 'general_chat';
+              'action_request' | 'clarification' | 'general_chat' | 'exam_inquiry' | 'resource_request';
   entities: {
     goals?: string[];
     skills?: string[];

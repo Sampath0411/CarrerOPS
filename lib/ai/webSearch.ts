@@ -14,12 +14,22 @@ export async function searchWeb(query: string): Promise<SearchResult[]> {
       locale: 'en',
     });
 
-    return results.results.slice(0, 5).map((result) => ({
-      title: result.title || '',
-      link: result.url || '',
-      snippet: result.description || '',
-      source: new URL(result.url || '').hostname || 'web',
-    }));
+    return results.results.slice(0, 5).map((result) => {
+      let hostname = 'web';
+      try {
+        const url = new URL(result.url || '');
+        hostname = url.hostname.replace('www.', '');
+      } catch {
+        hostname = 'web';
+      }
+
+      return {
+        title: result.title || '',
+        link: result.url || '',
+        snippet: result.description || '',
+        source: hostname,
+      };
+    });
   } catch (error) {
     console.error('Web search error:', error);
     return [];
@@ -41,11 +51,10 @@ export async function fetchCareerData(
 export function formatSearchResults(results: SearchResult[]): string {
   if (results.length === 0) return '';
 
-  return `
-\n\nHere's what I found online:\n${results
+  // Format as course-style entries for better card rendering
+  return results
     .map(
-      (r, i) =>
-        `${i + 1}. **${r.title}**\n   ${r.snippet}\n   Source: [${r.source}](${r.link})`
+      (r) => `${r.title} - ${r.link}`
     )
-    .join('\n\n')}`;
+    .join('\n');
 }

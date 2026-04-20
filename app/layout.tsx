@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { Navigation } from "@/components/layout/Navigation";
+import { CareerProvider } from "@/lib/context/CareerContext";
+import { OnboardingGuard } from "@/components/onboarding/OnboardingGuard";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -29,8 +31,12 @@ export default function RootLayout({
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
       <body className="min-h-full bg-slate-950">
-        <Navigation />
-        {children}
+        <CareerProvider>
+          <OnboardingGuard>
+            <Navigation />
+            {children}
+          </OnboardingGuard>
+        </CareerProvider>
       </body>
     </html>
   );

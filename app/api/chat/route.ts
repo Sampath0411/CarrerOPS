@@ -4,7 +4,7 @@ import { saveChatMessage } from '@/lib/supabase/client';
 
 export async function POST(req: NextRequest) {
   try {
-    const { message, sessionId, userId, mode } = await req.json();
+    const { message, sessionId, userId, mode, userProfile } = await req.json();
 
     if (!message) {
       return NextResponse.json(
@@ -13,12 +13,13 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Process the chat message with mode
+    // Process the chat message with mode and user profile
     const result = await processChatMessage(
       userId || 'guest',
       message,
       [],
-      mode || 'courses'
+      mode || 'courses',
+      userProfile
     );
 
     // Save messages to database (if user is authenticated)
