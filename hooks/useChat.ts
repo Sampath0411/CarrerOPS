@@ -10,7 +10,7 @@ interface UseChatReturn {
   sendMessage: (content: string) => Promise<void>;
 }
 
-export function useChat(): UseChatReturn {
+export function useChat(mode: 'courses' | 'higher-ed' = 'courses'): UseChatReturn {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [isTyping, setIsTyping] = useState(false);
   const [lastIntent, setLastIntent] = useState<IntentData | null>(null);
@@ -42,6 +42,7 @@ export function useChat(): UseChatReturn {
           message: content,
           sessionId: 'default',
           userId: 'guest',
+          mode,
         }),
       });
 

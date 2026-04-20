@@ -1,4 +1,5 @@
 import { generateChatCompletion, generateTextCompletion } from '../providers/groq';
+import { fetchCareerData, formatSearchResults } from '../webSearch';
 import type { ChatMessage, IntentData, CareerStateGraph, StateChanges, DailyActions, ChatResponse } from '@/types';
 
 // Intent Extraction Prompt
@@ -76,13 +77,18 @@ Return ONLY valid JSON.`;
 export async function processChatMessage(
   userId: string,
   message: string,
-  history: ChatMessage[]
+  history: ChatMessage[],
+  mode: 'courses' | 'higher-ed' = 'courses'
 ): Promise<ChatResponse> {
   try {
-    // Step 1: Extract Intent
+    // Step 1: Fetch web data based on mode and query
+    const webResults = await fetchCareerData(mode, message);
+    const webContext = formatSearchResults(webResults);
+
+    // Step 2: Extract Intent with mode context
     const intentResponse = await generateChatCompletion([
       { role: 'system', content: INTENT_PROMPT },
-      { role: 'user', content: `User message: "${message}"\n\nExtract intent and entities.` },
+      { role: 'user', content: `Mode: ${mode}\nUser message: "${message}"\n\nExtract intent and entities.` },
     ]);
 
     let intent: IntentData;
@@ -98,12 +104,12 @@ export async function processChatMessage(
       };
     }
 
-    // Step 2: Update State Graph
+    // Step 3: Update State Graph
     const stateResponse = await generateChatCompletion([
       { role: 'system', content: STATE_PROMPT },
       {
         role: 'user',
-        content: `Intent: ${JSON.stringify(intent)}\nUser message: "${message}"\n\nDetermine state changes.`,
+        content: `Mode: ${mode}\nIntent: ${JSON.stringify(intent)}\nUser message: "${message}"\n\nDetermine state changes.`,
       },
     ]);
 
@@ -115,17 +121,21 @@ export async function processChatMessage(
       stateChanges = { added: [], updated: [], removed: [], edges_added: [] };
     }
 
-    // Step 3: Generate AI Response
-    const responsePrompt = `You are CareerOps, an AI Career Operating System. The user said: "${message}"
+    // Step 4: Generate AI Response with web data
+    const responsePrompt = `You are CareerOps, an AI Career Operating System.
+
+Mode: ${mode === 'courses' ? 'Course Discovery' : 'Higher Education Guidance'}
+The user said: "${message}"
 
 Intent: ${intent.summary}
 
+${webContext ? `Here is current online information:\n${webContext}\n\n` : ''}
 Provide a helpful, conversational response that:
 1. Acknowledges their intent
-2. Asks follow-up questions if needed
+2. ${webContext ? 'References specific resources or links found online' : 'Asks clarifying questions'}
 3. Suggests next steps
 
-Be encouraging and specific. Keep it under 150 words.`;
+Be encouraging and specific. Include relevant links if available. Keep it under 200 words.`;
 
     const aiResponse = await generateTextCompletion(responsePrompt);
 

@@ -37,7 +37,7 @@ export async function getCurrentUser() {
 }
 
 // Chat functions
-export async function saveChatMessage(message: Omit<ChatMessage, 'id' | 'timestamp'>) {
+export async function saveChatMessage(message: Omit<ChatMessage, 'id'>) {
   const { data, error } = await supabase
     .from('chat_memory')
     .insert([message])
