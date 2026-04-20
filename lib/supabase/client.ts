@@ -1,16 +1,31 @@
-import { createClient } from '@supabase/supabase-js';
+import { createClient, SupabaseClient } from '@supabase/supabase-js';
 import type { User, ChatMessage, CareerStateGraph, Roadmap, DailyActions, SimulationResult, Opportunity } from '@/types';
 
 // Lazy initialization - only create client when needed
-let supabaseInstance: ReturnType<typeof createClient> | null = null;
+let supabaseInstance: SupabaseClient | null = null;
 
-function getSupabase() {
+function getSupabase(): SupabaseClient | null {
+  if (typeof window === 'undefined') {
+    // Server-side - check env vars
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+
+    if (!supabaseUrl || !supabaseKey) {
+      return null;
+    }
+
+    if (!supabaseInstance) {
+      supabaseInstance = createClient(supabaseUrl, supabaseKey);
+    }
+    return supabaseInstance;
+  }
+
+  // Client-side - use window check or existing instance
   if (!supabaseInstance) {
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
     const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
     if (!supabaseUrl || !supabaseKey) {
-      // Return a mock client that does nothing
       console.warn('Supabase credentials not found. Database features disabled.');
       return null;
     }
@@ -22,10 +37,10 @@ function getSupabase() {
 
 // Auth functions
 export async function signUp(email: string, password: string, name: string) {
-  const supabase = getSupabase();
-  if (!supabase) return { data: null, error: new Error('Supabase not configured') };
+  const client = getSupabase();
+  if (!client) return { data: null, error: new Error('Supabase not configured') };
 
-  const { data, error } = await supabase.auth.signUp({
+  const { data, error } = await client.auth.signUp({
     email,
     password,
     options: {
@@ -36,10 +51,10 @@ export async function signUp(email: string, password: string, name: string) {
 }
 
 export async function signIn(email: string, password: string) {
-  const supabase = getSupabase();
-  if (!supabase) return { data: null, error: new Error('Supabase not configured') };
+  const client = getSupabase();
+  if (!client) return { data: null, error: new Error('Supabase not configured') };
 
-  const { data, error } = await supabase.auth.signInWithPassword({
+  const { data, error } = await client.auth.signInWithPassword({
     email,
     password,
   });
@@ -47,39 +62,42 @@ export async function signIn(email: string, password: string) {
 }
 
 export async function signOut() {
-  const supabase = getSupabase();
-  if (!supabase) return { error: new Error('Supabase not configured') };
+  const client = getSupabase();
+  if (!client) return { error: new Error('Supabase not configured') };
 
-  const { error } = await supabase.auth.signOut();
+  const { error } = await client.auth.signOut();
   return { error };
 }
 
 export async function getCurrentUser() {
-  const supabase = getSupabase();
-  if (!supabase) return null;
+  const client = getSupabase();
+  if (!client) return null;
 
-  const { data: { user } } = await supabase.auth.getUser();
+  const { data: { user } } = await client.auth.getUser();
   return user;
 }
 
 // Chat functions
 export async function saveChatMessage(message: Omit<ChatMessage, 'id'>) {
-  const supabase = getSupabase();
-  if (!supabase) return { data: null, error: new Error('Supabase not configured') };
+  const client = getSupabase();
+  if (!client) {
+    console.warn('Supabase not configured, message not saved');
+    return { data: null, error: null };
+  }
 
-  const { data, error } = await supabase
+  const { data, error } = await client
     .from('chat_memory')
-    .insert([message])
+    .insert(message)
     .select()
     .single();
   return { data, error };
 }
 
 export async function getChatHistory(userId: string, sessionId?: string) {
-  const supabase = getSupabase();
-  if (!supabase) return { data: null, error: new Error('Supabase not configured') };
+  const client = getSupabase();
+  if (!client) return { data: null, error: new Error('Supabase not configured') };
 
-  let query = supabase
+  let query = client
     .from('chat_memory')
     .select('*')
     .eq('user_id', userId)
@@ -95,8 +113,8 @@ export async function getChatHistory(userId: string, sessionId?: string) {
 
 // Career State functions
 export async function getCareerState(userId: string): Promise<CareerStateGraph | null> {
-  const supabase = getSupabase();
-  if (!supabase) {
+  const client = getSupabase();
+  if (!client) {
     // Return default state without database
     return {
       user_id: userId,
@@ -107,7 +125,7 @@ export async function getCareerState(userId: string): Promise<CareerStateGraph |
     };
   }
 
-  const { data, error } = await supabase
+  const { data, error } = await client
     .from('career_state_graph')
     .select('*')
     .eq('user_id', userId)
@@ -127,15 +145,15 @@ export async function getCareerState(userId: string): Promise<CareerStateGraph |
 }
 
 export async function saveCareerState(state: CareerStateGraph) {
-  const supabase = getSupabase();
-  if (!supabase) return { data: null, error: new Error('Supabase not configured') };
+  const client = getSupabase();
+  if (!client) {
+    console.warn('Supabase not configured, state not saved');
+    return { data: null, error: null };
+  }
 
-  const { data, error } = await supabase
+  const { data, error } = await client
     .from('career_state_graph')
-    .upsert([{
-      ...state,
-      last_updated: new Date().toISOString(),
-    }])
+    .upsert(state)
     .select()
     .single();
   return { data, error };
@@ -143,10 +161,10 @@ export async function saveCareerState(state: CareerStateGraph) {
 
 // Roadmap functions
 export async function getActiveRoadmap(userId: string): Promise<Roadmap | null> {
-  const supabase = getSupabase();
-  if (!supabase) return null;
+  const client = getSupabase();
+  if (!client) return null;
 
-  const { data, error } = await supabase
+  const { data, error } = await client
     .from('roadmaps')
     .select('*')
     .eq('user_id', userId)
@@ -157,15 +175,15 @@ export async function getActiveRoadmap(userId: string): Promise<Roadmap | null> 
 }
 
 export async function saveRoadmap(roadmap: Omit<Roadmap, 'id' | 'created_at' | 'updated_at'>) {
-  const supabase = getSupabase();
-  if (!supabase) return { data: null, error: new Error('Supabase not configured') };
+  const client = getSupabase();
+  if (!client) {
+    console.warn('Supabase not configured, roadmap not saved');
+    return { data: null, error: null };
+  }
 
-  const { data, error } = await supabase
+  const { data, error } = await client
     .from('roadmaps')
-    .upsert([{
-      ...roadmap,
-      updated_at: new Date().toISOString(),
-    }])
+    .upsert(roadmap)
     .select()
     .single();
   return { data, error };
@@ -173,10 +191,10 @@ export async function saveRoadmap(roadmap: Omit<Roadmap, 'id' | 'created_at' | '
 
 // Daily Actions functions
 export async function getTodayActions(userId: string, date: string): Promise<DailyActions | null> {
-  const supabase = getSupabase();
-  if (!supabase) return null;
+  const client = getSupabase();
+  if (!client) return null;
 
-  const { data, error } = await supabase
+  const { data, error } = await client
     .from('daily_actions')
     .select('*')
     .eq('user_id', userId)
@@ -187,12 +205,15 @@ export async function getTodayActions(userId: string, date: string): Promise<Dai
 }
 
 export async function saveDailyActions(actions: Omit<DailyActions, 'id' | 'created_at'>) {
-  const supabase = getSupabase();
-  if (!supabase) return { data: null, error: new Error('Supabase not configured') };
+  const client = getSupabase();
+  if (!client) {
+    console.warn('Supabase not configured, actions not saved');
+    return { data: null, error: null };
+  }
 
-  const { data, error } = await supabase
+  const { data, error } = await client
     .from('daily_actions')
-    .upsert([actions])
+    .upsert(actions)
     .select()
     .single();
   return { data, error };
@@ -200,10 +221,10 @@ export async function saveDailyActions(actions: Omit<DailyActions, 'id' | 'creat
 
 // Opportunities functions
 export async function getOpportunities(userId: string) {
-  const supabase = getSupabase();
-  if (!supabase) return { data: null, error: new Error('Supabase not configured') };
+  const client = getSupabase();
+  if (!client) return { data: null, error: new Error('Supabase not configured') };
 
-  const { data, error } = await supabase
+  const { data, error } = await client
     .from('opportunities')
     .select('*')
     .eq('user_id', userId)
@@ -213,12 +234,15 @@ export async function getOpportunities(userId: string) {
 
 // Simulation functions
 export async function saveSimulation(simulation: Omit<SimulationResult, 'id' | 'created_at'>) {
-  const supabase = getSupabase();
-  if (!supabase) return { data: null, error: new Error('Supabase not configured') };
+  const client = getSupabase();
+  if (!client) {
+    console.warn('Supabase not configured, simulation not saved');
+    return { data: null, error: null };
+  }
 
-  const { data, error } = await supabase
+  const { data, error } = await client
     .from('simulations')
-    .insert([simulation])
+    .insert(simulation)
     .select()
     .single();
   return { data, error };
